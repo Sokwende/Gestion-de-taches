@@ -76,7 +76,128 @@ class seConnecter:
         else:
             print("Identifiants invalides. Connexion échouée.")
             cursor.close()
- 
+            
+
+class ajouterTache:
+    def __init__(self, username, titre, description, etat, dateDebut):
+        self.username = username
+        self.titre = titre
+        self.description = description
+        self.etat = etat
+        self.dateDebut = dateDebut
+        connexion = ConnexionMySQL("localhost", "root", "", "projetjenkins")
+        cursor = connexion.connect().cursor()
+        query = "SELECT * FROM utilisateur where username = %s and password = %s"
+        donnees = (username, password)
+        cursor.execute(query, donnees)
+        idUser = cursor.fetchall()[0][0]
+        
+        cursor = connexion.connect().cursor()
+        query = "INSERT INTO tache(iduser,titre, description, etat, datedebut) VALUES (%s,%s,%s,%s,%s)"
+        donnees = (idUser,titre, description, etat, dateDebut)
+        cursor.execute(query, donnees)
+
+class marquerTache:
+    def __init__(self, idTache, username):
+        
+        self.idTache = idTache
+        self.username = username
+        
+        connexion = ConnexionMySQL("localhost", "root", "", "projetjenkins")
+        cursor = connexion.connect().cursor()
+        query = "SELECT * FROM utilisateur where username = %s and password = %s"
+        donnees = (username, password)
+        cursor.execute(query, donnees)
+        idUser = cursor.fetchall()[0][0]
+        
+        cursor = connexion.connect().cursor()
+        if username == 'Admin':
+            query = "SELECT * FROM tache" 
+        else:
+            query = "SELECT * FROM tache WHERE iduser=%s"%(idUser)
+        cursor.execute(query)
+        taches = cursor.fetchall()
+        idTaches = []
+        for tache in taches:
+            idTaches.append(tache[0])
+        
+        if idTache not in idTaches:
+            print("Vous n'avez pas le droit de modifier cette tâche")
+        else:
+            cursor = connexion.connect().cursor()
+            query = "UPDATE tache SET etat='1' where idtache=%s"%(idTache)
+            cursor.execute(query)
+            print(Fore.GREEN +"Tache %s terminée"%idTache)
+            print(Style.RESET_ALL)
+            
+class modifierTache:
+    def __init__(self, idTache, username, titre, description):
+        self.idTache = idTache
+        self.username = username
+        self.titre = titre
+        self.description = description
+        
+        connexion = ConnexionMySQL("localhost", "root", "", "projetjenkins")
+        cursor = connexion.connect().cursor()
+        query = "SELECT * FROM utilisateur where username = %s and password = %s"
+        donnees = (username, password)
+        cursor.execute(query, donnees)
+        idUser = cursor.fetchall()[0][0]
+        
+        cursor = connexion.connect().cursor()
+        if username == 'Admin':
+            query = "SELECT * FROM tache" 
+        else:
+            query = "SELECT * FROM tache WHERE iduser=%s"%(idUser)
+        cursor.execute(query)
+        taches = cursor.fetchall()
+        idTaches = []
+        for tache in taches:
+            idTaches.append(tache[0])
+        if idTache not in idTaches:
+            print(Fore.RED +"Vous n'avez pas le droit de modifier cette tâche")
+            print(Style.RESET_ALL)
+        else:
+            cursor = connexion.connect().cursor()
+            query = "UPDATE tache SET titre=%s, description = %s where idtache=%s"
+            donnees = [titre, description, idTache]
+            cursor.execute(query, donnees)
+            print(Fore.GREEN +"Tâche %s modifiée"%idTache)
+            print(Style.RESET_ALL)
+            
+class supprimerTache:
+    def __init__(self, idTache, username):
+        
+        self.idTache = idTache
+        self.username = username
+        
+        connexion = ConnexionMySQL("localhost", "root", "", "projetjenkins")
+        cursor = connexion.connect().cursor()
+        query = "SELECT * FROM utilisateur where username = %s and password = %s"
+        donnees = (username, password)
+        cursor.execute(query, donnees)
+        idUser = cursor.fetchall()[0][0]
+        
+        cursor = connexion.connect().cursor()
+        if username == 'Admin':
+            query = "SELECT * FROM tache" 
+        else:
+            query = "SELECT * FROM tache WHERE iduser=%s"%(idUser)
+        cursor.execute(query)
+        taches = cursor.fetchall()
+        idTaches = []
+        for tache in taches:
+            idTaches.append(tache[0])
+        if idTache not in idTaches:
+            print(Fore.RED +"Vous n'avez pas le droit de modifier cette tâche")
+            print(Style.RESET_ALL)
+        else:
+            cursor = connexion.connect().cursor()
+            query = "DELETE FROM tache where idtache=%s"%(idTache)
+            cursor.execute(query)
+            print(Fore.GREEN +"Tache %s supprimée"%idTache)
+            print(Style.RESET_ALL)
+            
 class Taches:
     def __init__(self, username):
         quitter = False
@@ -84,6 +205,7 @@ class Taches:
             print(Fore.MAGENTA +"Que voulez-vous faire?")
             print(Style.RESET_ALL)
             print("1-Ajouter des taches\n2-Voir les taches\n3-Voir des statistiques\n4-Quitter")
+            
             choix = int(input("Choisir: "))
             while choix !=1 and choix !=2 and choix !=3 and choix !=4:
                 print("choix invalid")
@@ -99,18 +221,17 @@ class Taches:
                 #on a recuperer l'id de l'utilisateur pour la suite des operations
                 
                 if choix == 1:
-                    print("Ajout d'une nouvelle tache")
+                    print(Fore.MAGENTA +"Ajout d'une nouvelle tache")
+                    print(Style.RESET_ALL)
                     titre = str(input("Entrez le titre de votre tache: "))
                     description = str(input("Decrivez votre tache: "))
                     etat = 0 #par defaut une tache est à l'etat non terminé
                     dateDebut = datetime.now()
-                    cursor = connexion.connect().cursor()
-                    query = "INSERT INTO tache(iduser,titre, description, etat, datedebut) VALUES (%s,%s,%s,%s,%s)"
-                    donnees = (idUser,titre, description, etat, dateDebut)
-                    cursor.execute(query, donnees)
+                    ajouterTache(username, titre, description, etat, dateDebut)
                     print(Fore.GREEN +"Tache ajoutée")
                     print(Style.RESET_ALL)
                 elif choix == 2:
+                    
                     cursor = connexion.connect().cursor()
                     if username == 'Admin':
                         query = "SELECT * FROM tache" 
@@ -167,40 +288,25 @@ class Taches:
                             autrechoix = int(input("Choisir: "))
                             if autrechoix ==1:
                                 idTache = int(input("Entrez l'id de la tache: "))
-                                if idTache not in idTaches:
-                                    print("Vous n'avez pas le droit de modifier cette tâche")
-                                else:
-                                    cursor = connexion.connect().cursor()
-                                    query = "UPDATE tache SET etat='1' where idtache=%s"%(idTache)
-                                    #donnees = [1, idTache]
-                                    cursor.execute(query)
-                                    print(Fore.GREEN +"Tache %s terminée"%idTache)
-                                    print(Style.RESET_ALL)
+                                marquerTache(idTache, username)
+                                
                             elif autrechoix == 2:
                                 idTache = int(input("Entrez l'id de la tache: "))
+                                titre = str(input("Entrez le nouveau titre: "))
+                                description = str(input("Entrez la nouvelle description: "))
+                                modifierTache(idTache, username, titre, description)
                                 
-                                if idTache not in idTaches:
-                                    print(Fore.RED +"Vous n'avez pas le droit de modifier cette tâche")
-                                    print(Style.RESET_ALL)
-                                else:
-                                    titre = str(input("Entrez le nouveau titre: "))
-                                    description = str(input("Entrez la nouvelle description: "))
-                                    cursor = connexion.connect().cursor()
-                                    query = "UPDATE tache SET titre=%s, description = %s where idtache=%s"
-                                    donnees = [titre, description, idTache]
-                                    cursor.execute(query, donnees)
-                                    print(Fore.GREEN +"Tâche %s modifiée"%idTache)
-                                    print(Style.RESET_ALL)
                             elif autrechoix == 3:
                                 idTache = int(input("Entrez l'id de la tache: "))
-                                if idTache not in idTaches:
-                                    print(Fore.RED +"Vous n'avez pas le droit de modifier cette tâche")
-                                    print(Style.RESET_ALL)
-                                else:
-                                    cursor = connexion.connect().cursor()
-                                    query = "DELETE FROM tache where idtache=%s"%(idTache)
-                                    cursor.execute(query)
-                                    print("Tache %s supprimée"%idTache)
+                                supprimerTache(idTache, username)
+                                # if idTache not in idTaches:
+                                #     print(Fore.RED +"Vous n'avez pas le droit de modifier cette tâche")
+                                #     print(Style.RESET_ALL)
+                                # else:
+                                #     cursor = connexion.connect().cursor()
+                                #     query = "DELETE FROM tache where idtache=%s"%(idTache)
+                                #     cursor.execute(query)
+                                #     print("Tache %s supprimée"%idTache)
                             elif autrechoix == 4:
                                 quitter2 = True
                             else:
