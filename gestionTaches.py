@@ -72,19 +72,20 @@ class seConnecter:
         if cursor.fetchone():
             print("Connexion réussie !")
             print("#"+"===Bienvenue "+username+"==="+"#")
-            Taches(username)
+            Taches(username, password)
         else:
             print("Identifiants invalides. Connexion échouée.")
             cursor.close()
             
 
 class ajouterTache:
-    def __init__(self, username, titre, description, etat, dateDebut):
+    def __init__(self, username,password, titre, description, etat, dateDebut):
         self.username = username
         self.titre = titre
         self.description = description
         self.etat = etat
         self.dateDebut = dateDebut
+        self.password = password
         connexion = ConnexionMySQL("localhost", "root", "", "projetjenkins")
         cursor = connexion.connect().cursor()
         query = "SELECT * FROM utilisateur where username = %s and password = %s"
@@ -98,10 +99,11 @@ class ajouterTache:
         cursor.execute(query, donnees)
 
 class marquerTache:
-    def __init__(self, idTache, username):
+    def __init__(self, idTache, username, password):
         
         self.idTache = idTache
         self.username = username
+        self.password = password
         
         connexion = ConnexionMySQL("localhost", "root", "", "projetjenkins")
         cursor = connexion.connect().cursor()
@@ -131,9 +133,10 @@ class marquerTache:
             print(Style.RESET_ALL)
             
 class modifierTache:
-    def __init__(self, idTache, username, titre, description):
+    def __init__(self, idTache, username,password,  titre, description):
         self.idTache = idTache
         self.username = username
+        self.password = password
         self.titre = titre
         self.description = description
         
@@ -166,10 +169,11 @@ class modifierTache:
             print(Style.RESET_ALL)
             
 class supprimerTache:
-    def __init__(self, idTache, username):
+    def __init__(self, idTache, username, password):
         
         self.idTache = idTache
         self.username = username
+        self.password = password
         
         connexion = ConnexionMySQL("localhost", "root", "", "projetjenkins")
         cursor = connexion.connect().cursor()
@@ -199,7 +203,7 @@ class supprimerTache:
             print(Style.RESET_ALL)
             
 class Taches:
-    def __init__(self, username):
+    def __init__(self, username, password):
         quitter = False
         while quitter == False:
             print(Fore.MAGENTA +"Que voulez-vous faire?")
@@ -227,7 +231,7 @@ class Taches:
                     description = str(input("Decrivez votre tache: "))
                     etat = 0 #par defaut une tache est à l'etat non terminé
                     dateDebut = datetime.now()
-                    ajouterTache(username, titre, description, etat, dateDebut)
+                    ajouterTache(username, password, titre, description, etat, dateDebut)
                     print(Fore.GREEN +"Tache ajoutée")
                     print(Style.RESET_ALL)
                 elif choix == 2:
@@ -288,25 +292,18 @@ class Taches:
                             autrechoix = int(input("Choisir: "))
                             if autrechoix ==1:
                                 idTache = int(input("Entrez l'id de la tache: "))
-                                marquerTache(idTache, username)
+                                marquerTache(idTache, username, password)
                                 
                             elif autrechoix == 2:
                                 idTache = int(input("Entrez l'id de la tache: "))
                                 titre = str(input("Entrez le nouveau titre: "))
                                 description = str(input("Entrez la nouvelle description: "))
-                                modifierTache(idTache, username, titre, description)
+                                modifierTache(idTache, username, password, titre, description)
                                 
                             elif autrechoix == 3:
                                 idTache = int(input("Entrez l'id de la tache: "))
-                                supprimerTache(idTache, username)
-                                # if idTache not in idTaches:
-                                #     print(Fore.RED +"Vous n'avez pas le droit de modifier cette tâche")
-                                #     print(Style.RESET_ALL)
-                                # else:
-                                #     cursor = connexion.connect().cursor()
-                                #     query = "DELETE FROM tache where idtache=%s"%(idTache)
-                                #     cursor.execute(query)
-                                #     print("Tache %s supprimée"%idTache)
+                                supprimerTache(idTache, username, password)
+                                 
                             elif autrechoix == 4:
                                 quitter2 = True
                             else:
@@ -371,6 +368,12 @@ if __name__ == "__main__":
         password2 = str(input("Confirmez le mot de passe: "))
         if password == password2:
             creerCompte(username,0,email,password,nom,prenom)
+            print(Fore.MAGENTA +"Veuillez vous connecter")
+            print(Style.RESET_ALL)
+            username = str(input("Nom d'utilisateur: "))
+            password = str(input("Mot de passe: "))
+            
+            seConnecter(username, password)
         else:
             print("erreur: les mot de passe ne correspondent pas")
     
